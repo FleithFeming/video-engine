@@ -42,6 +42,9 @@ logs/
 # Analysis outputs
 *_analysis*.json
 
+# Test data
+test_videos/
+
 # OS
 .DS_Store
 Thumbs.db

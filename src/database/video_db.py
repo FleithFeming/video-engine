@@ -2,10 +2,12 @@
 
 import sqlite3
 import json
+import logging
 import numpy as np
-from pathlib import Path
 from typing import List, Dict, Any, Optional
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 
 def convert_to_json_serializable(obj):
@@ -259,7 +261,7 @@ class VideoDatabase:
                     )
 
             except Exception as e:
-                print(f"Error importing {result.get('file_name', 'unknown')}: {e}")
+                logger.error("Error importing %s: %s", result.get('file_name', 'unknown'), e)
                 stats["errors"] += 1
 
         self.conn.commit()
