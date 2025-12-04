@@ -109,6 +109,11 @@ class Hook:
                 logger.error(f"Hook handler {handler.__name__} failed: {e}")
         return None
     
+    def clear(self) -> None:
+        """Remove all registered handlers."""
+        self._handlers.clear()
+        self._priority_handlers.clear()
+    
     def __len__(self) -> int:
         """Get number of registered handlers."""
         return len(self._handlers)
@@ -328,14 +333,12 @@ class HookManager:
             hook_name: Name of the hook to clear
         """
         if hook_name in self._hooks:
-            self._hooks[hook_name]._handlers.clear()
-            self._hooks[hook_name]._priority_handlers.clear()
+            self._hooks[hook_name].clear()
     
     def clear_all(self) -> None:
         """Remove all handlers from all hooks."""
         for hook in self._hooks.values():
-            hook._handlers.clear()
-            hook._priority_handlers.clear()
+            hook.clear()
     
     def __contains__(self, hook_name: str) -> bool:
         """Check if a hook exists."""

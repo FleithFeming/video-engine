@@ -176,11 +176,11 @@ class PluginRegistry:
         loaded = 0
         
         try:
+            from importlib.metadata import entry_points
+            
             if sys.version_info >= (3, 10):
-                from importlib.metadata import entry_points
                 eps = entry_points(group=group)
             else:
-                from importlib.metadata import entry_points
                 eps = entry_points().get(group, [])
             
             for ep in eps:

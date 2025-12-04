@@ -35,17 +35,25 @@ class ColorHistogramAnalyzer(AnalyzerPlugin):
         Analyze frame color distribution.
         
         Args:
-            frame: RGB numpy array (H, W, 3)
+            frame: RGB numpy array (H, W, 3), typically uint8
             
         Returns:
             Dictionary with histogram data
         """
+        # Determine value range based on frame dtype
+        if frame.dtype == np.uint8:
+            value_range = (0, 256)
+        elif frame.dtype == np.uint16:
+            value_range = (0, 65536)
+        else:
+            value_range = (0, 1)  # Assume normalized float
+        
         histograms = {}
         for i, color in enumerate(['red', 'green', 'blue']):
             hist, _ = np.histogram(
                 frame[:, :, i], 
                 bins=self.num_bins, 
-                range=(0, 256)
+                range=value_range
             )
             histograms[color] = hist.tolist()
         
