@@ -1,7 +1,6 @@
 """Video I/O utilities for frame extraction and metadata."""
 
 import os
-from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple
 import numpy as np
 import cv2

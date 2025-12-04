@@ -1,13 +1,15 @@
 """Video analysis using frame-based ML models and temporal analysis."""
 
 import os
-from pathlib import Path
+import logging
 from typing import List, Dict, Any, Optional, Protocol
 import numpy as np
 from collections import Counter
 from tqdm import tqdm
 import tempfile
 import cv2
+
+logger = logging.getLogger(__name__)
 
 from ..utils.video_io import (
     get_video_info,
@@ -88,31 +90,34 @@ class VideoAnalyzer:
         if max_frames <= 0:
             raise ValueError(f"max_frames must be positive, got {max_frames}")
 
-        print(f"\nAnalyzing video: {os.path.basename(video_path)}")
+        logger.info("Analyzing video: %s", os.path.basename(video_path))
 
         # Step 1: Extract video metadata
         video_info = get_video_info(video_path)
-        print(f"Duration: {video_info['duration_formatted']}, "
-              f"Resolution: {video_info['resolution']}, "
-              f"FPS: {video_info['fps']:.1f}")
+        logger.info(
+            "Duration: %s, Resolution: %s, FPS: %.1f",
+            video_info['duration_formatted'],
+            video_info['resolution'],
+            video_info['fps']
+        )
 
         # Step 2: Extract frames
         if extract_keyframes_only:
-            print("Extracting keyframes (scene detection)...")
+            logger.info("Extracting keyframes (scene detection)...")
             frames = extract_keyframes(
                 video_path,
                 threshold=self.keyframe_threshold,
                 min_scene_duration=self.min_scene_duration,
             )
         else:
-            print(f"Extracting {max_frames} evenly-spaced frames...")
+            logger.info("Extracting %d evenly-spaced frames...", max_frames)
             frames = extract_frames(video_path, num_frames=max_frames)
 
-        print(f"Extracted {len(frames)} frames for analysis")
+        logger.info("Extracted %d frames for analysis", len(frames))
 
         # Limit total frames analyzed
         if len(frames) > max_frames:
-            print(f"Limiting to {max_frames} frames for performance")
+            logger.info("Limiting to %d frames for performance", max_frames)
             # Keep evenly distributed frames
             indices = np.linspace(0, len(frames) - 1, max_frames, dtype=int)
             frames = [frames[i] for i in indices]
@@ -123,7 +128,7 @@ class VideoAnalyzer:
         object_detections = []
         quality_scores = []
 
-        print("Analyzing frames with ML models...")
+        logger.info("Analyzing frames with ML models...")
         for timestamp, frame in tqdm(frames, desc="Frame analysis", unit="frame"):
             frame_result = {
                 "timestamp": timestamp,
@@ -146,7 +151,7 @@ class VideoAnalyzer:
                     if tmp_path and os.path.exists(tmp_path):
                         try:
                             os.unlink(tmp_path)
-                        except:
+                        except OSError:
                             pass  # Ignore cleanup errors
 
             # ML analysis (scenes, objects)
@@ -165,7 +170,7 @@ class VideoAnalyzer:
                     if tmp_path and os.path.exists(tmp_path):
                         try:
                             os.unlink(tmp_path)
-                        except:
+                        except OSError:
                             pass  # Ignore cleanup errors
 
                 frame_result.update(ml_result)
@@ -231,7 +236,7 @@ class VideoAnalyzer:
                 result = self.analyze(video_path, **kwargs)
                 results.append(result)
             except Exception as e:
-                print(f"\nError analyzing {video_path}: {e}")
+                logger.error("Error analyzing %s: %s", video_path, e)
                 results.append({
                     "file_path": video_path,
                     "error": str(e),
